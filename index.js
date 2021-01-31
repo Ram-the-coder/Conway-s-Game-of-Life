@@ -164,8 +164,29 @@ canvas.addEventListener('mousedown', e => {
   isMouseDown = true;
   handleSelection(e);
 });
+canvas.addEventListener('touchstart', e => {
+  mousePos = getTouchPos(canvas, e);
+  var touch = e.touches[0];
+  var mouseEvent = new MouseEvent("mousedown", {
+    clientX: touch.clientX,
+    clientY: touch.clientY
+  });
+  canvas.dispatchEvent(mouseEvent);
+}, false);
 canvas.addEventListener('mousemove', handleSelection);
+canvas.addEventListener("touchmove", function (e) {
+  var touch = e.touches[0];
+  var mouseEvent = new MouseEvent("mousemove", {
+    clientX: touch.clientX,
+    clientY: touch.clientY
+  });
+  canvas.dispatchEvent(mouseEvent);
+}, false);
 canvas.addEventListener('mouseup', e => isMouseDown = false);
+canvas.addEventListener("touchend", function (e) {
+  var mouseEvent = new MouseEvent("mouseup", {});
+  canvas.dispatchEvent(mouseEvent);
+}, false);
 
 eraser.addEventListener('click', e => {
   isEraser = !isEraser
@@ -198,6 +219,13 @@ randomBtn.addEventListener('click', e => {
   }
 })
 
+function getTouchPos(canvasDom, touchEvent) {
+  var rect = canvasDom.getBoundingClientRect();
+  return {
+    x: touchEvent.touches[0].clientX - rect.left,
+    y: touchEvent.touches[0].clientY - rect.top
+  };
+}
 
 function toast(msg, heading, {delay=5000, autohide=true}) {
   const toast = new bootstrap.Toast(document.querySelector('.toast'), {autohide, delay});
