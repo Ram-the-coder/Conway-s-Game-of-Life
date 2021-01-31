@@ -80,6 +80,7 @@ const canvas = document.getElementById('board');
 const eraser = document.getElementById('eraser');
 const resetButton = document.getElementById('reset');
 const startBtn = document.getElementById('start');
+const randomBtn = document.getElementById('randomFill');
 
 const ctx = canvas.getContext('2d');
 console.log(ctx);
@@ -102,6 +103,19 @@ let isPaused;
 let nextGenTimer;
 
 reset(); // Reset the board and init values
+toast(`The Game of Life, is a cellular automaton devised by the British mathematician John Horton Conway.
+\nIt is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input
+\n-------------
+\nClick or drag across the canvas to activate/deactivate cells. Or use random filler to randomly activate some cells.
+\n-------------
+\nRules of the automaton:
+\n1. Any live cell with two or three live neighbours survives.
+\n2. Any dead cell with three live neighbours becomes a live cell.
+\n3. All other live cells die in the next generation. Similarly, all other dead cells stay dead.
+\n-------------
+\nEnjoy
+\n-------------
+`, 'About', {autohide: false})
 
 function handleSelection(e) {
   if(!isMouseDown) return;
@@ -135,6 +149,8 @@ function reset() {
   clearInterval(nextGenTimer);
   startBtn.innerText = 'Start simulation';
   isPaused = true;
+  randomBtn.disabled = false;
+  eraser.disabled = false;
   board = new Board(CELLSIZE, width, height);
 }
 
@@ -162,10 +178,33 @@ resetButton.addEventListener('click', e => reset());
 startBtn.addEventListener('click', e => {
   isPaused = !isPaused;
   isPaused ? clearInterval(nextGenTimer) : simulate();
+  randomBtn.disabled = !isPaused;
+  eraser.disabled = !isPaused;
   startBtn.innerText = isPaused ? 'Start simulation' : 'Pause simulation';
 });
 
+randomBtn.addEventListener('click', e => {
+  let  probability = parseFloat(prompt('Enter the probability with which to activate a cell', 0.1));
+  if(!probability) probability = 0.5;
+  probability = Math.max(probability, 0);
+  probability = Math.min(probability, 1);
+  for(let i=0; i<width; i+=CELLSIZE) {
+    for(let j=0; j<height; j+=CELLSIZE) {
+      if(Math.random() > probability) continue;
+      let [x, y, cellSize] = board.activateCellWithPixel(i, j);                    
+  ctx.fillStyle = isEraser ? INACTIVE : ACTIVE;
+  ctx.fillRect(x, y, cellSize, cellSize);
+    }
+  }
+})
 
 
-
+function toast(msg, heading, {delay=5000, autohide=true}) {
+  const toast = new bootstrap.Toast(document.querySelector('.toast'), {autohide, delay});
+  const toastHeading = document.getElementById('toast-heading');
+  const toastBody = document.querySelector('.toast-body');
+  toastHeading.innerText = heading;
+  toastBody.innerText = msg;
+  toast.show();
+}
 
